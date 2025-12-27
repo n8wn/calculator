@@ -16,7 +16,31 @@ public class App {
         if ((input.contains("(") == true) && (input.contains(")") == true)) {
             // should it contain brackets the program should evaluate those brackets and repeat until the sets of
             // brackets are gone. each time a bracket set is evaluated it is replaced with the answer. 
-
+            // brackets will be evaluted by counting. every ( braket adds one to the count and every ) bracket subtracts 1 
+            // from the count. when the count is 0 the brackets are evaluated. then calculate solution is called recursively until all brackets are evaluated. 
+            
+            int lastOpen = -1;
+            int count = 0;
+            for (int i = 0; i < input.length(); i++) {
+                if (input.charAt(i) == '(') {
+                    if (count == 0) {
+                        lastOpen = i; // mark start of new innermost bracket
+                    }
+                    count++;
+                } else if (input.charAt(i) == ')') {
+                    count--;
+                    if (count == 0 && lastOpen != -1) {
+                        // Found a full bracketed part
+                        String inside = input.substring(lastOpen + 1, i);
+                        // Recursively evaluate what's inside using calculateSolution
+                        double evaluated = calculateSolution(inside);
+                        // Replace the bracketed part with the evaluated result
+                        String newInput = input.substring(0, lastOpen) + evaluated + input.substring(i + 1);
+                        // Recursively process the new input (in case there are more brackets)
+                        return bracketsEvaluation(newInput);
+                    }
+                }
+            }
         }
         return input;
     }
