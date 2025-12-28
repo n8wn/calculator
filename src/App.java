@@ -14,12 +14,7 @@ public class App {
 
     public static String bracketsEvaluation(String input)
     {
-        if ((input.contains("(") == true) && (input.contains(")") == true)) {
-            // should it contain brackets the program should evaluate those brackets and repeat until the sets of
-            // brackets are gone. each time a bracket set is evaluated it is replaced with the answer. 
-            // brackets will be evaluted by counting. every ( braket adds one to the count and every ) bracket subtracts 1 
-            // from the count. when the count is 0 the brackets are evaluated. then calculate solution is called recursively until all brackets are evaluated. 
-            
+        if (input.contains("(") && input.contains(")")) {
             int lastOpen = -1;
             int count = 0;
             for (int i = 0; i < input.length(); i++) {
@@ -31,13 +26,28 @@ public class App {
                 } else if (input.charAt(i) == ')') {
                     count--;
                     if (count == 0 && lastOpen != -1) {
-                        // Found a full bracketed part
+                        // found a full bracketed part
                         String inside = input.substring(lastOpen + 1, i);
-                        // Recursively evaluate what's inside using calculateSolution
+                        // remove leading/trailing spaces inside the brackets
+                        inside = inside.trim();
+                        // recursively evaluate what's inside using calculateSolution
                         double evaluated = calculateSolution(inside);
-                        // Replace the bracketed part with the evaluated result
+                        // replace the bracketed part (including any spaces just inside the brackets) with the evaluated result
+    
+                        // expand lastOpen forward to include spaces after '('
+                        int open = lastOpen;
+                        while (open + 1 < input.length() && Character.isWhitespace(input.charAt(open + 1))) {
+                            open++;
+                        }
+                        // expand i backward to include spaces before ')'
+                        int close = i;
+                        while (close - 1 >= 0 && Character.isWhitespace(input.charAt(close - 1))) {
+                            close--;
+                        }
+    
+                        // replace from lastOpen to i (inclusive), including inner spaces, with result
                         String newInput = input.substring(0, lastOpen) + evaluated + input.substring(i + 1);
-                        // Recursively process the new input (in case there are more brackets)
+                        // recursively process the new input (in case there are more brackets)
                         return bracketsEvaluation(newInput);
                     }
                 }
@@ -48,28 +58,34 @@ public class App {
 
     public static String exponentEvaluation(String input)
     {
-        if (input.contains("^") == true) {
-            double base = 0;
-            double exponent = 0;
+        // pattern: number (with optional decimal), optional spaces, ^, optional spaces, number (with optional decimal)
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
+            "\\s*([0-9]+(?:\\.[0-9]+)?)\\s*\\^\\s*([0-9]+(?:\\.[0-9]+)?)\\s*"
+        );
+        java.util.regex.Matcher matcher = pattern.matcher(input);
+    
+        // keep replacing exponents until there are no more left
+        while (matcher.find()) {
+            // capture groups for numbers
+            String num1 = matcher.group(1);
+            String num2 = matcher.group(2);
+    
+            double base = Double.parseDouble(num1);
+            double exponent = Double.parseDouble(num2);
+    
             double powerSolution = power(base, exponent);
+    
+            // replace the matched part with the solution
+            input = input.substring(0, matcher.start()) + powerSolution + input.substring(matcher.end());
+            // reset matcher since input has changed
+            matcher = pattern.matcher(input);
         }
+    
         return input;
     }
 
     public static String divisionEvaluation(String input)
     {
-        if ((input.contains("/") == true) || (input.contains("÷") == true)) {
-            double dividend = 10;    
-            double divisor = 2;      
-            double quotient = 0.0;
-            
-            if (divisor != 0) {
-                quotient = dividend / divisor;
-            } else {
-                System.out.println("Error: Division by zero!");
-                // must break out of the function and return with an error. 
-            }
-        }
         // pattern: optional spaces, number, optional spaces, * or x (case-insensitive), optional spaces, number, optional spaces
         java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
             "\\s*([0-9]+(?:\\.[0-9]+)?)\\s*[/÷]\\s*([0-9]+(?:\\.[0-9]+)?)\\s*"
@@ -187,6 +203,8 @@ public class App {
         {
             input = bracketsEvaluation(input);
         }
+
+        //System.out.println(input);
 
         while (input.contains("^") == true)
         {
