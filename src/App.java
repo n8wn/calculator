@@ -6,8 +6,9 @@ public class App {
         // scanner for console input
         System.out.print("Please see README for intructions on use. Input problem here:  ");
         String input = scanner.nextLine();
+        double answer = calculateSolution(input);
         
-        //System.out.println(input);
+        System.out.println(answer);
         scanner.close();
     }
 
@@ -69,44 +70,113 @@ public class App {
                 // must break out of the function and return with an error. 
             }
         }
-
-        return input;
+        // pattern: optional spaces, number, optional spaces, * or x (case-insensitive), optional spaces, number, optional spaces
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
+            "\\s*([0-9]+(?:\\.[0-9]+)?)\\s*[/÷]\\s*([0-9]+(?:\\.[0-9]+)?)\\s*"
+        );
+        java.util.regex.Matcher matcher = pattern.matcher(input);
+    
+        if (matcher.find()) {
+            // capture groups for numbers
+            String num1 = matcher.group(1);
+            String num2 = matcher.group(2);
+    
+            double dividend = Double.parseDouble(num1);
+            double divisor = Double.parseDouble(num2);
+            double quotient = 0.0;
+            if (divisor != 0) {
+                quotient = dividend / divisor; 
+            } else {
+                System.err.println("Error: Division by zero!");
+                System.exit(1); 
+            }
+    
+            // replace the matched part with the product
+            String result = input.substring(0, matcher.start()) + quotient + input.substring(matcher.end());
+    
+            return result;
+        }
+    
+        return input; // no match found
     }
 
     public static String multiplicationEvaluation(String input)
     {
-        if ((input.contains("x") == true) || (input.contains("*") == true)) {
-            double multiplicand = 10;    
-            double multiplier = 2;      
-            double product = 0.0;
-            product = multiplicand * multiplier;
+        // pattern: optional spaces, number, optional spaces, * or x (case-insensitive), optional spaces, number, optional spaces
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
+            "\\s*([0-9]+(?:\\.[0-9]+)?)\\s*[*xX]\\s*([0-9]+(?:\\.[0-9]+)?)\\s*"
+        );
+        java.util.regex.Matcher matcher = pattern.matcher(input);
+    
+        if (matcher.find()) {
+            // capture groups for numbers
+            String num1 = matcher.group(1);
+            String num2 = matcher.group(2);
+    
+            double multiplicand = Double.parseDouble(num1);
+            double multiplier = Double.parseDouble(num2);
+            double product = multiplicand * multiplier; 
+    
+            // replace the matched part with the product
+            String result = input.substring(0, matcher.start()) + product + input.substring(matcher.end());
+    
+            return result;
         }
-
-        return input;
+    
+        return input; // no match found
     }
 
-    public static String additionEvaluation(String input)
-    {
-        if (input.contains("+") == true) {
-            double addend1 = 10;    
-            double addend2 = 2;      
-            double sum = 0.0;
-            sum = addend1 + addend2;
+    public static String additionEvaluation(String input) {
+        // pattern: optional spaces, number, optional spaces, +, optional spaces, number, optional spaces
+        // number: one or more digits, optional decimal part
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
+            "\\s*([0-9]+(?:\\.[0-9]+)?)\\s*\\+\\s*([0-9]+(?:\\.[0-9]+)?)\\s*"
+        );
+        java.util.regex.Matcher matcher = pattern.matcher(input);
+    
+        if (matcher.find()) {
+            // capture groups for numbers
+            String num1 = matcher.group(1);
+            String num2 = matcher.group(2);
+    
+            double addend1 = Double.parseDouble(num1);
+            double addend2 = Double.parseDouble(num2);
+            double sum = addend1 + addend2;
+    
+            // replace the matched part with the sum
+            String result = input.substring(0, matcher.start()) + sum + input.substring(matcher.end());
+    
+            return result;
         }
-
-        return input;
+    
+        return input; // no match found
     }
 
     public static String subtractionEvaluation(String input)
     {
-        if (input.contains("-") == true) {
-            double minuend = 10;    
-            double subtrahend = 2;      
-            double difference = 0.0;
-            difference = minuend - subtrahend;
+        // pattern: optional spaces, number, optional spaces, +, optional spaces, number, optional spaces
+        // number: one or more digits, optional decimal part
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
+            "\\s*([0-9]+(?:\\.[0-9]+)?)\\s*\\-\\s*([0-9]+(?:\\.[0-9]+)?)\\s*"
+        );
+        java.util.regex.Matcher matcher = pattern.matcher(input);
+    
+        if (matcher.find()) {
+            // capture groups for numbers
+            String num1 = matcher.group(1);
+            String num2 = matcher.group(2);
+    
+            double minuend = Double.parseDouble(num1);
+            double subtrahend = Double.parseDouble(num2);
+            double difference = minuend - subtrahend;
+    
+            // replace the matched part with the sum
+            String result = input.substring(0, matcher.start()) + difference + input.substring(matcher.end());
+    
+            return result;
         }
-
-        return input;
+    
+        return input; // no match found
     }
 
     public static double calculateSolution(String input)
@@ -144,7 +214,7 @@ public class App {
         }
 
         
-        double answer = 0.0;
+        double answer = Double.parseDouble(input);
         return answer;
     }
 
