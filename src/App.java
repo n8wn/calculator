@@ -6,83 +6,208 @@ public class App {
         // scanner for console input
         System.out.print("Please see README for intructions on use. Input problem here:  ");
         String input = scanner.nextLine();
+        double answer = 0;
+        if (errorChecking(input)) {
+            answer = calculateSolution(input);
+        } else {
+            System.err.println("Your input is not valid. Check above erorr message.");
+            System.exit(1); 
+        }
         
-        //System.out.println(input);
+        System.out.println(answer);
         scanner.close();
     }
 
     public static String bracketsEvaluation(String input)
     {
-        if ((input.contains("(") == true) && (input.contains(")") == true)) {
-            // should it contain brackets the program should evaluate those brackets and repeat until the sets of
-            // brackets are gone. each time a bracket set is evaluated it is replaced with the answer. 
-
+        if (input.contains("(") && input.contains(")")) {
+            int lastOpen = -1;
+            int count = 0;
+            for (int i = 0; i < input.length(); i++) {
+                if (input.charAt(i) == '(') {
+                    if (count == 0) {
+                        lastOpen = i; // mark start of new innermost bracket
+                    }
+                    count++;
+                } else if (input.charAt(i) == ')') {
+                    count--;
+                    if (count == 0 && lastOpen != -1) {
+                        // found a full bracketed part
+                        String inside = input.substring(lastOpen + 1, i);
+                        // remove leading/trailing spaces inside the brackets
+                        inside = inside.trim();
+                        // recursively evaluate what's inside using calculateSolution
+                        double evaluated = calculateSolution(inside);
+                        // replace the bracketed part (including any spaces just inside the brackets) with the evaluated result
+    
+                        // expand lastOpen forward to include spaces after '('
+                        int open = lastOpen;
+                        while (open + 1 < input.length() && Character.isWhitespace(input.charAt(open + 1))) {
+                            open++;
+                        }
+                        // expand i backward to include spaces before ')'
+                        int close = i;
+                        while (close - 1 >= 0 && Character.isWhitespace(input.charAt(close - 1))) {
+                            close--;
+                        }
+    
+                        // replace from lastOpen to i (inclusive), including inner spaces, with result
+                        String newInput = input.substring(0, lastOpen) + evaluated + input.substring(i + 1);
+                        // recursively process the new input (in case there are more brackets)
+                        return bracketsEvaluation(newInput);
+                    }
+                }
+            }
         }
         return input;
     }
 
+    public static double power(double base, double exponent) {
+        // base case: exponent is 0
+        if (exponent == 0) {
+            return 1;
+        }
+        // recursive case
+        return base * power(base, exponent - 1);
+    }
+
     public static String exponentEvaluation(String input)
     {
-        if (input.contains("^") == true) {
-            double base = 0;
-            double exponent = 0;
+        // pattern: number (with optional decimal), optional spaces, ^, optional spaces, number (with optional decimal)
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
+            "\\s*([0-9]+(?:\\.[0-9]+)?)\\s*\\^\\s*([0-9]+(?:\\.[0-9]+)?)\\s*"
+        );
+        java.util.regex.Matcher matcher = pattern.matcher(input);
+    
+        // keep replacing exponents until there are no more left
+        while (matcher.find()) {
+            // capture groups for numbers
+            String num1 = matcher.group(1);
+            String num2 = matcher.group(2);
+    
+            double base = Double.parseDouble(num1);
+            double exponent = Double.parseDouble(num2);
+    
             double powerSolution = power(base, exponent);
+    
+            // replace the matched part with the solution
+            input = input.substring(0, matcher.start()) + powerSolution + input.substring(matcher.end());
+            // reset matcher since input has changed
+            matcher = pattern.matcher(input);
         }
+    
         return input;
     }
 
     public static String divisionEvaluation(String input)
     {
-        if ((input.contains("/") == true) || (input.contains("÷") == true)) {
-            double dividend = 10;    
-            double divisor = 2;      
+        // pattern: optional spaces, number, optional spaces, * or x (case-insensitive), optional spaces, number, optional spaces
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
+            "\\s*([0-9]+(?:\\.[0-9]+)?)\\s*[/÷]\\s*([0-9]+(?:\\.[0-9]+)?)\\s*"
+        );
+        java.util.regex.Matcher matcher = pattern.matcher(input);
+    
+        if (matcher.find()) {
+            // capture groups for numbers
+            String num1 = matcher.group(1);
+            String num2 = matcher.group(2);
+    
+            double dividend = Double.parseDouble(num1);
+            double divisor = Double.parseDouble(num2);
             double quotient = 0.0;
-            
             if (divisor != 0) {
-                quotient = dividend / divisor;
+                quotient = dividend / divisor; 
             } else {
-                System.out.println("Error: Division by zero!");
-                // must break out of the function and return with an error. 
+                System.err.println("Error: Division by zero!");
+                System.exit(1); 
             }
+    
+            // replace the matched part with the product
+            String result = input.substring(0, matcher.start()) + quotient + input.substring(matcher.end());
+    
+            return result;
         }
-
-        return input;
+    
+        return input; // no match found
     }
 
     public static String multiplicationEvaluation(String input)
     {
-        if ((input.contains("x") == true) || (input.contains("*") == true)) {
-            double multiplicand = 10;    
-            double multiplier = 2;      
-            double product = 0.0;
-            product = multiplicand * multiplier;
+        // pattern: optional spaces, number, optional spaces, * or x (case-insensitive), optional spaces, number, optional spaces
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
+            "\\s*([0-9]+(?:\\.[0-9]+)?)\\s*[*xX]\\s*([0-9]+(?:\\.[0-9]+)?)\\s*"
+        );
+        java.util.regex.Matcher matcher = pattern.matcher(input);
+    
+        if (matcher.find()) {
+            // capture groups for numbers
+            String num1 = matcher.group(1);
+            String num2 = matcher.group(2);
+    
+            double multiplicand = Double.parseDouble(num1);
+            double multiplier = Double.parseDouble(num2);
+            double product = multiplicand * multiplier; 
+    
+            // replace the matched part with the product
+            String result = input.substring(0, matcher.start()) + product + input.substring(matcher.end());
+    
+            return result;
         }
-
-        return input;
+    
+        return input; // no match found
     }
 
-    public static String additionEvaluation(String input)
-    {
-        if (input.contains("+") == true) {
-            double addend1 = 10;    
-            double addend2 = 2;      
-            double sum = 0.0;
-            sum = addend1 + addend2;
+    public static String additionEvaluation(String input) {
+        // pattern: optional spaces, number, optional spaces, +, optional spaces, number, optional spaces
+        // number: one or more digits, optional decimal part
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
+            "\\s*([0-9]+(?:\\.[0-9]+)?)\\s*\\+\\s*([0-9]+(?:\\.[0-9]+)?)\\s*"
+        );
+        java.util.regex.Matcher matcher = pattern.matcher(input);
+    
+        if (matcher.find()) {
+            // capture groups for numbers
+            String num1 = matcher.group(1);
+            String num2 = matcher.group(2);
+    
+            double addend1 = Double.parseDouble(num1);
+            double addend2 = Double.parseDouble(num2);
+            double sum = addend1 + addend2;
+    
+            // replace the matched part with the sum
+            String result = input.substring(0, matcher.start()) + sum + input.substring(matcher.end());
+    
+            return result;
         }
-
-        return input;
+    
+        return input; // no match found
     }
 
     public static String subtractionEvaluation(String input)
     {
-        if (input.contains("-") == true) {
-            double minuend = 10;    
-            double subtrahend = 2;      
-            double difference = 0.0;
-            difference = minuend - subtrahend;
+        // pattern: optional spaces, number, optional spaces, +, optional spaces, number, optional spaces
+        // number: one or more digits, optional decimal part
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
+            "\\s*([0-9]+(?:\\.[0-9]+)?)\\s*\\-\\s*([0-9]+(?:\\.[0-9]+)?)\\s*"
+        );
+        java.util.regex.Matcher matcher = pattern.matcher(input);
+    
+        if (matcher.find()) {
+            // capture groups for numbers
+            String num1 = matcher.group(1);
+            String num2 = matcher.group(2);
+    
+            double minuend = Double.parseDouble(num1);
+            double subtrahend = Double.parseDouble(num2);
+            double difference = minuend - subtrahend;
+    
+            // replace the matched part with the sum
+            String result = input.substring(0, matcher.start()) + difference + input.substring(matcher.end());
+    
+            return result;
         }
-
-        return input;
+    
+        return input; // no match found
     }
 
     public static double calculateSolution(String input)
@@ -93,6 +218,8 @@ public class App {
         {
             input = bracketsEvaluation(input);
         }
+
+        //System.out.println(input);
 
         while (input.contains("^") == true)
         {
@@ -120,16 +247,81 @@ public class App {
         }
 
         
-        double answer = 0.0;
+        double answer = Double.parseDouble(input);
         return answer;
     }
 
-    public static double power(double base, double exponent) {
-        // base case: exponent is 0
-        if (exponent == 0) {
-            return 1;
+    public static boolean errorChecking(String input)
+    {
+        // first all all whitespace is removed for easier checking
+        String expr = input.replaceAll("\\s+", "");
+    
+        //1. check for invalid characters
+        if (!expr.matches("[0-9.()+\\-*/xX^]*")) {
+            System.err.println("Error: Invalid character detected.");
+            return false;
         }
-        // recursive case
-        return base * power(base, exponent - 1);
+        // 2.check for consecutive operators 
+        // not allowed: ++, --, +-, *+ + more
+        if (expr.matches(".*[+\\-*/xX^]{2,}.*")) {
+            System.err.println("Error: Consecutive operators detected.");
+            return false;
+        }
+    
+        // 3. check for leading or trailing operator
+        if (expr.matches("^[+\\-*/xX^].*") || expr.matches(".*[+\\-*/xX^]$")) {
+            System.err.println("Error: Expression starts or ends with an operator.");
+            return false;
+        }
+    
+        // 4. check for unmatched parentheses
+        int parenCount = 0;
+        for (char c : expr.toCharArray()) {
+            if (c == '(') parenCount++;
+            if (c == ')') parenCount--;
+            if (parenCount < 0) {
+                System.err.println("Error: Closing parenthesis without matching opening parenthesis.");
+                return false;
+            }
+        }
+        if (parenCount != 0) {
+            System.err.println("Error: Unmatched parentheses.");
+            return false;
+        }
+    
+        // 5. check for empty parentheses
+        if (expr.contains("()")) {
+            System.err.println("Error: Empty parentheses detected.");
+            return false;
+        }
+    
+        // 6. check for operator directly inside parentheses 
+        if (expr.matches(".*\\([+*/xX^].*") || expr.matches(".*[+*/xX^]\\).*")) {
+            System.err.println("Error: Operator directly inside parentheses.");
+            return false;
+        }
+    
+        // 7. check for decimal point errors 
+        if (expr.matches(".*\\.\\..*") || expr.matches(".*[+\\-*/xX^]\\..*") || expr.matches(".*\\.([+\\-*/xX^]).*")) {
+            System.err.println("Error: Invalid decimal point usage.");
+            return false;
+        }
+    
+        // 8. check for operator before or after parenthesis 
+        if (expr.matches(".*[+\\-*/xX^]\\).*") || expr.matches(".*\\([+*/xX^].*")) {
+            System.err.println("Error: Operator misplaced near parenthesis.");
+            return false;
+        }
+        
+        /* 
+        // 9. check for numbers right after or before parentheses without an operator 
+        // support implied multiplication:
+        if (expr.matches(".*\\d\\(.*") || expr.matches(".*\\)\\d.*")) {
+            System.err.println("Error: Missing operator between number and parenthesis.");
+            return false;
+        } */
+    
+        // If all checks pass
+        return true;
     }
 }
