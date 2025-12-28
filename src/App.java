@@ -6,7 +6,13 @@ public class App {
         // scanner for console input
         System.out.print("Please see README for intructions on use. Input problem here:  ");
         String input = scanner.nextLine();
-        double answer = calculateSolution(input);
+        double answer = 0;
+        if (errorChecking(input)) {
+            answer = calculateSolution(input);
+        } else {
+            System.err.println("Your input is not valid. Check above erorr message.");
+            System.exit(1); 
+        }
         
         System.out.println(answer);
         scanner.close();
@@ -54,6 +60,15 @@ public class App {
             }
         }
         return input;
+    }
+
+    public static double power(double base, double exponent) {
+        // base case: exponent is 0
+        if (exponent == 0) {
+            return 1;
+        }
+        // recursive case
+        return base * power(base, exponent - 1);
     }
 
     public static String exponentEvaluation(String input)
@@ -236,12 +251,77 @@ public class App {
         return answer;
     }
 
-    public static double power(double base, double exponent) {
-        // base case: exponent is 0
-        if (exponent == 0) {
-            return 1;
+    public static boolean errorChecking(String input)
+    {
+        // first all all whitespace is removed for easier checking
+        String expr = input.replaceAll("\\s+", "");
+    
+        //1. check for invalid characters
+        if (!expr.matches("[0-9.()+\\-*/xX^]*")) {
+            System.err.println("Error: Invalid character detected.");
+            return false;
         }
-        // recursive case
-        return base * power(base, exponent - 1);
+        // 2.check for consecutive operators 
+        // not allowed: ++, --, +-, *+ + more
+        if (expr.matches(".*[+\\-*/xX^]{2,}.*")) {
+            System.err.println("Error: Consecutive operators detected.");
+            return false;
+        }
+    
+        // 3. check for leading or trailing operator
+        if (expr.matches("^[+\\-*/xX^].*") || expr.matches(".*[+\\-*/xX^]$")) {
+            System.err.println("Error: Expression starts or ends with an operator.");
+            return false;
+        }
+    
+        // 4. check for unmatched parentheses
+        int parenCount = 0;
+        for (char c : expr.toCharArray()) {
+            if (c == '(') parenCount++;
+            if (c == ')') parenCount--;
+            if (parenCount < 0) {
+                System.err.println("Error: Closing parenthesis without matching opening parenthesis.");
+                return false;
+            }
+        }
+        if (parenCount != 0) {
+            System.err.println("Error: Unmatched parentheses.");
+            return false;
+        }
+    
+        // 5. check for empty parentheses
+        if (expr.contains("()")) {
+            System.err.println("Error: Empty parentheses detected.");
+            return false;
+        }
+    
+        // 6. check for operator directly inside parentheses 
+        if (expr.matches(".*\\([+*/xX^].*") || expr.matches(".*[+*/xX^]\\).*")) {
+            System.err.println("Error: Operator directly inside parentheses.");
+            return false;
+        }
+    
+        // 7. check for decimal point errors 
+        if (expr.matches(".*\\.\\..*") || expr.matches(".*[+\\-*/xX^]\\..*") || expr.matches(".*\\.([+\\-*/xX^]).*")) {
+            System.err.println("Error: Invalid decimal point usage.");
+            return false;
+        }
+    
+        // 8. check for operator before or after parenthesis 
+        if (expr.matches(".*[+\\-*/xX^]\\).*") || expr.matches(".*\\([+*/xX^].*")) {
+            System.err.println("Error: Operator misplaced near parenthesis.");
+            return false;
+        }
+        
+        /* 
+        // 9. check for numbers right after or before parentheses without an operator 
+        // support implied multiplication:
+        if (expr.matches(".*\\d\\(.*") || expr.matches(".*\\)\\d.*")) {
+            System.err.println("Error: Missing operator between number and parenthesis.");
+            return false;
+        } */
+    
+        // If all checks pass
+        return true;
     }
 }
